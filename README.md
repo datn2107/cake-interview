@@ -3,7 +3,8 @@
     - User can create an account
     - User can login to their account
 2. The promotion system:
-    - The 100 first login users will get a 30% discount on their first purchase
+    - The 100 first login users will get a 30% discount
+    - This discount will be applied to the 
 
 # Assumptions
 1. For the login/create system:
@@ -79,6 +80,8 @@
 - **Response**:
     ```json
     {
-        "discount": 30
+        "name": "string",
+        "discount": "number",
+        "description": "string"
     }
     ```
