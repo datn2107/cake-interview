@@ -1,0 +1,9 @@
+fastapi
+aioredis
+pymongo[srv]
+pydantic
+pydantic[email]
+uvicorn
+python-dotenv
+pyjwt
+cryptography
