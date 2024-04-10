@@ -21,10 +21,10 @@ async def create_user(
     user_repository: UserRepository = Depends(user_repository),
 ) -> JSONResponse:
     user = user_register.to_user()
-    if user_repository.is_exist(user):
+    if await user_repository.is_exist(user):
         return JSONResponse(status_code=400, content="User already exists")
 
-    user_repository.create(user)
+    await user_repository.create(user)
 
     return JSONResponse(status_code=201, content="User created")
 
@@ -35,7 +35,7 @@ async def login_user(
     user_repository: UserRepository = Depends(user_repository),
     jwt_authentication: JWTAuthentication = Depends(jwt_authentication),
 ) -> JSONResponse:
-    user = user_repository.find_by_identifier(user_login.identifier)
+    user = await user_repository.find_by_identifier(user_login.identifier)
     if user is None:
         return JSONResponse(status_code=404, content="User not found")
 
@@ -44,7 +44,7 @@ async def login_user(
 
     if user.is_first_login:
         user.is_first_login = False
-        user_repository.update(user)
+        await user_repository.update(user)
 
         # TO DO: send user infor to promotion service
 

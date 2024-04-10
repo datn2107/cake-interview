@@ -1,12 +1,11 @@
 import os
 
-from pymongo import mongo_client, server_api
+import motor.motor_asyncio
 
-client = mongo_client.MongoClient(
+client = motor.motor_asyncio.AsyncIOMotorClient(
     os.getenv("DB_URI").format(
         username=os.getenv("DB_USERNAME"), password=os.getenv("DB_PASSWORD")
     ),
-    server_api=server_api.ServerApi("1"),
     retryWrites=True,
 )
 

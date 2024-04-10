@@ -40,6 +40,7 @@ class UserRegisterViewModel(BaseModel):
 
     def to_user(self):
         return User(
+            id=None,
             username=self.username,
             email=self.email,
             phone=self.phone,

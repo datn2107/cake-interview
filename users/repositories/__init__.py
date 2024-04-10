@@ -1,5 +1,5 @@
 from typing import Any
-from pymongo.database import Database
+from motor.motor_asyncio import AsyncIOMotorDatabase as Database
 
 from .user_repository import UserRepository
 

@@ -1,4 +1,5 @@
-from pymongo.database import Database, Collection
+from motor.motor_asyncio import AsyncIOMotorDatabase as Database
+from motor.motor_asyncio import AsyncIOMotorCollection as Collection
 from bson import ObjectId
 
 from models.user import User
@@ -10,8 +11,8 @@ class UserRepository:
     def __init__(self, db: Database):
         self.collections = db.get_collection("users")
 
-    def find_by_identifier(self, identifier: str) -> User:
-        user_in_db = self.collections.find_one(
+    async def find_by_identifier(self, identifier: str) -> User:
+        user_in_db = await self.collections.find_one(
             {"$or": [{"username": identifier}, {"email": identifier}, {"phone": identifier}]}
         )
 
@@ -22,25 +23,27 @@ class UserRepository:
         user = User.model_validate(user_in_db)
         return user
 
-    def is_exist(self, user: User) -> bool:
+    async def is_exist(self, user: User) -> bool:
         for key in ["username", "email", "phone"]:
             if getattr(user, key) is None:
                 continue
 
-            user_in_db = self.find_by_identifier(getattr(user, key))
+            user_in_db = await self.find_by_identifier(getattr(user, key))
             if user_in_db is not None:
+                print(user_in_db.model_dump())
                 return True
 
         return False
 
-    def create(self, user: User) -> str:
-        if self.is_exist(user):
+    async def create(self, user: User) -> str:
+        if await self.is_exist(user):
             raise ValueError("User already exists")
-        print(user.model_dump())
 
-        return self.collections.insert_one(user.model_dump()).inserted_id
+        user_in_db = await self.collections.insert_one(user.model_dump())
+        return user_in_db.inserted_id
 
-    def update(self, user: User) -> str:
-        return self.collections.update_one(
+    async def update(self, user: User) -> str:
+        user_in_db = await self.collections.update_one(
             {"_id": ObjectId(user.id)}, {"$set": user.model_dump()}
-        ).upserted_id
+        )
+        return user_in_db.upserted_id
