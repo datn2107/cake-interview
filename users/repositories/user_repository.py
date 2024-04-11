@@ -30,7 +30,6 @@ class UserRepository:
 
             user_in_db = await self.find_by_identifier(getattr(user, key))
             if user_in_db is not None:
-                print(user_in_db.model_dump())
                 return True
 
         return False

@@ -3,10 +3,12 @@ import dotenv
 
 dotenv.load_dotenv()
 
+from dependencies.logger import MyLogger
 from dependencies.database import database
 
 
 if __name__ == '__main__':
+    logger = MyLogger(os.path.basename(os.path.dirname(__file__)) + ":migrate")
     migrations_collection = database.get_collection('migrations')
 
     for migration in os.listdir('users/migrations'):
@@ -17,8 +19,8 @@ if __name__ == '__main__':
             try:
                 exec(open(f'users/migrations/{migration}').read())
             except Exception as e:
-                print(f'Failed to run migration {migration}: {e}')
+                logger.error(f'Failed to run migration {migration}: {e}')
                 continue
 
             migrations_collection.insert_one({'name': migration})
-            print(f'Migration {migration} has been run successfully')
+            logger.info(f'Migration {migration} has been run successfully')

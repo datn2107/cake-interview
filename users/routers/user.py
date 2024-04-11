@@ -1,12 +1,13 @@
 import os
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from dependencies.database import database
 from dependencies.jwt import JWTAuthenticationFactory, JWTAuthentication
 from repositories import RepositoryFactory, UserRepository
 from models.user import User, UserRegisterViewModel, UserLoginViewModel
+
 
 router = APIRouter()
 user_repository = RepositoryFactory("user", database)
@@ -21,8 +22,9 @@ async def create_user(
     user_repository: UserRepository = Depends(user_repository),
 ) -> JSONResponse:
     user = user_register.to_user()
+
     if await user_repository.is_exist(user):
-        return JSONResponse(status_code=400, content="User already exists")
+        raise HTTPException(status_code=400, detail="User already exists")
 
     await user_repository.create(user)
 
@@ -36,11 +38,11 @@ async def login_user(
     jwt_authentication: JWTAuthentication = Depends(jwt_authentication),
 ) -> JSONResponse:
     user = await user_repository.find_by_identifier(user_login.identifier)
-    if user is None:
-        return JSONResponse(status_code=404, content="User not found")
 
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
     if user.password != user_login.password:
-        return JSONResponse(status_code=401, content="Password is incorrect")
+        raise HTTPException(status_code=401, detail="Invalid password")
 
     if user.is_first_login:
         user.is_first_login = False
