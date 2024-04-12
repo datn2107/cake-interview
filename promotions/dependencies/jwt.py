@@ -12,19 +12,20 @@ class JWTAuthentication:
 
     def is_valid(self, token: str, user_id: int = None) -> bool:
         payload = self.get_payload(token)
-        print(payload)
+        current_time = datetime.now(timezone.utc).strftime(os.getenv("DATETIME_FORMAT"))
 
         if "expired_at" not in payload or "user_id" not in payload:
             return False
 
         if user_id is None:
-            return datetime.now(timezone.utc).strftime(os.getenv("DATETIME_FORMAT")) < payload["expired_at"]
+            return current_time < payload["expired_at"]
 
-        return payload["user_id"] == user_id and datetime.now(timezone.utc).strftime(os.getenv("DATETIME_FORMAT")) < payload["expired_at"]
+        return payload["user_id"] == user_id and current_time < payload["expired_at"]
 
     def is_admin(self, token: str) -> bool:
-        if self.is_valid(token):
+        if not self.is_valid(token):
             return False
+
         payload = self.get_payload(token)
 
         return payload.get("is_admin", False)

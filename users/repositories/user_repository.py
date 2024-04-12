@@ -1,14 +1,13 @@
+import time
+from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase as Database
 from motor.motor_asyncio import AsyncIOMotorCollection as Collection
-from bson import ObjectId
 
 from models.user import User
 
 
 class UserRepository:
     COLLECTION_NAME = "users"
-
-    collections: Collection
 
     def __init__(self, db: Database):
         self.collections = db.get_collection(self.COLLECTION_NAME)

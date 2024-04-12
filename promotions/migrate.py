@@ -1,5 +1,6 @@
 import os
 import dotenv
+import asyncio
 
 dotenv.load_dotenv()
 
@@ -7,25 +8,32 @@ from dependencies.logger import migrations_logger as logger
 from dependencies.database import MongoDb
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         MongoDb.connect()
-        migrations_collection = MongoDb.database.get_collection('migrations')
+        loop = asyncio.get_event_loop()
+        migrations_collection = MongoDb.database.get_collection("migrations")
 
-        for migration in os.listdir('users/migrations'):
-            if not migration.endswith('.py') or migration == '__init__.py':
+        app_name = os.path.basename(os.path.dirname(__file__))
+        migration_dir = os.path.join(app_name, "migrations")
+
+        for migration in os.listdir(migration_dir):
+            if not migration.endswith(".py") or migration == "__init__.py":
                 continue
-
-            if migrations_collection.find_one({'name': migration}):
+            
+            migration_in_db = loop.run_until_complete(
+                migrations_collection.find_one({"name": migration})
+            )
+            if migration_in_db is not None:
                 continue
 
             try:
-                exec(open(f'users/migrations/{migration}').read())
+                exec(open(f"{migration_dir}/{migration}").read())
             except Exception as e:
-                logger.error(f'Failed to run migration {migration}: {e}')
+                logger.error(f"Failed to run migration {migration}: {e}")
                 continue
 
-            migrations_collection.insert_one({'name': migration})
-            logger.info(f'Migration {migration} has been run successfully')
+            migrations_collection.insert_one({"name": migration})
+            logger.info(f"Migration {migration} has been run successfully")
     finally:
         MongoDb.disconnect()

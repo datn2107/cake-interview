@@ -11,8 +11,6 @@ from models.campaign import Campaign
 class CampaignRepository:
     COLLECTION_NAME = "campaign"
 
-    collections: Collection
-
     def __init__(self, db: Database):
         self.collections = db.get_collection(self.COLLECTION_NAME)
 
@@ -40,8 +38,8 @@ class CampaignRepository:
 
     async def decrease_voucher_from_campaign(
         self, campaign_id: str, session: AgnosticClientSession = None
-    ) -> str:
-        campaign = await self.collections.find_one({"_id": ObjectId(campaign_id)})
+    ):
+        campaign = await self.collections.find_one({"_id": ObjectId(campaign_id)}, session=session)
 
         if campaign is None:
             return None
@@ -49,10 +47,10 @@ class CampaignRepository:
         if campaign["remaining_vouchers"] == 0:
             return None
 
-        await self.collections.update_one(
+        campaign = await self.collections.update_one(
             {"_id": ObjectId(campaign_id)},
             {"$inc": {"remaining_vouchers": -1}},
             session=session,
         )
 
-        return campaign["voucher_id"]
+        return campaign.upserted_id

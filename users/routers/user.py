@@ -47,8 +47,7 @@ async def login_user(user_login: UserLoginViewModel) -> JSONResponse:
 
         payload = {
             "user_id": user.id,
-            "user_identifier": user_login.identifier,
-            "is_admin": user.is_admin,
+            "user_identifier": user_login.identifier
         }
         await push_promotion_message(payload, os.getenv("MQ_PROMOTION_ROUTING_KEY"))
 
@@ -59,6 +58,7 @@ async def login_user(user_login: UserLoginViewModel) -> JSONResponse:
         "user_id": user.id,
         "user_identifier": user_login.identifier,
         "expired_at": expired_at.strftime(os.getenv("DATETIME_FORMAT")),
+        "is_admin": user.is_admin
     }
     token = jwt_authentication.generate_token(payload)
 

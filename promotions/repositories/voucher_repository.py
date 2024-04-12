@@ -11,8 +11,6 @@ from models.voucher import Voucher
 class VoucherRepository:
     COLLECTION_NAME = "voucher"
 
-    collections: Collection
-
     def __init__(self, db: Database):
         self.collections = db.get_collection(self.COLLECTION_NAME)
 

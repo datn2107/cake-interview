@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import JSONResponse
 
-from models.campaign import Campaign
+from models.campaign import Campaign, CampaignCreateViewModel
 from repositories import CampaignRepository
 from dependencies.database import MongoDb
 from dependencies.jwt import JWTAuthenticationFactory, JWTAuthentication
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/create_campaign")
 async def create_campaign(
-    campaign: Campaign,
+    campaign_view: CampaignCreateViewModel,
     authorization: Annotated[str, Header()] = None
 ) -> JSONResponse:
     campaign_repository = CampaignRepository(MongoDb.database)
@@ -28,6 +28,6 @@ async def create_campaign(
     if not jwt_authentication.is_admin(token):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    await campaign_repository.create(campaign)
+    await campaign_repository.create(campaign_view.to_campaign())
 
     return JSONResponse(status_code=201, content="Campaign created")
