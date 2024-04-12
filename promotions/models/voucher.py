@@ -1,10 +1,10 @@
 import os
 from datetime import datetime
 
-from pydantic import BaseModel
+from .base import MongoDbBaseModel
 
 
-class Voucher(BaseModel):
+class Voucher(MongoDbBaseModel):
     id: str | None
     user_id: str
     campaign_id: str

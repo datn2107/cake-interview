@@ -18,11 +18,7 @@ class VoucherRepository:
     async def find_by_id(self, voucher_id: str) -> Voucher:
         voucher = await self.collections.find_one({"_id": ObjectId(voucher_id)})
 
-        if voucher is None:
-            return None
-
-        voucher["id"] = voucher.pop("_id").__str__()
-        return Voucher.model_validate(voucher)
+        return Voucher.model_validate_mongodb(voucher)
 
     async def find_available_vouchers(self, user_id: str) -> List[Voucher]:
         vouchers = [
@@ -32,9 +28,7 @@ class VoucherRepository:
             )
         ]
 
-        for i in range(len(vouchers)):
-            vouchers[i]["id"] = vouchers[i].pop("_id").__str__()
-        return [Voucher.model_validate(voucher) for voucher in vouchers]
+        return [Voucher.model_validate_mongodb(voucher) for voucher in vouchers]
 
     async def create(self, voucher: Voucher) -> str:
         voucher_in_db = await self.collections.insert_one(voucher.model_dump())

@@ -1,10 +1,10 @@
 import os
 from datetime import datetime
 
-from pydantic import BaseModel
+from .base import MongoDbBaseModel
 
 
-class Campaign(BaseModel):
+class Campaign(MongoDbBaseModel):
     id: str | None
     name: str
     discount: int

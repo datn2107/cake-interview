@@ -19,6 +19,14 @@ class User(BaseModel):
     class Config:
         from_atributes = True
 
+    @staticmethod
+    def model_validate_mongodb(data: dict | None) -> "User":
+        if data is None:
+            return None
+
+        data["id"] = data.pop("_id").__str__()
+        return User.model_validate(data)
+
 
 class UserRegisterViewModel(BaseModel):
     username: str | None = None

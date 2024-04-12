@@ -18,12 +18,7 @@ class UserRepository:
             {"$or": [{"username": identifier}, {"email": identifier}, {"phone": identifier}]}
         )
 
-        if user_in_db is None:
-            return None
-
-        user_in_db["id"] = user_in_db.pop("_id").__str__()
-        user = User.model_validate(user_in_db)
-        return user
+        return User.model_validate_mongodb(user_in_db)
 
     async def is_exist(self, user: User) -> bool:
         for key in ["username", "email", "phone"]:

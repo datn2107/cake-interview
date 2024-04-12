@@ -20,14 +20,11 @@ class CampaignRepository:
             {"user_id": user_id, "remaining_vouchers": {"$gt": 0}}
         )
 
-        if campaign is None:
-            return None
-
-        campaign["id"] = campaign.pop("_id").__str__()
-        return Campaign.model_validate(campaign) 
+        return Campaign.model_validate_mongodb(campaign)
 
     async def create(self, campaign: Campaign) -> str:
         campaign_in_db = await self.collections.insert_one(campaign.model_dump())
+        
         return campaign_in_db.inserted_id
 
     async def get_voucher_from_campaign(self, campaign_id: str) -> str:

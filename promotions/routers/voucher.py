@@ -22,15 +22,10 @@ async def get_vouchers(
         "RS256", os.getenv("PRIVATE_KEY"), os.getenv("PUBLIC_KEY")
     )
 
-    print("authentication: ", authorization)
-    print(request.headers)
-
     if authorization is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     token = authorization.split(" ")[1]
-    print(token)
-    print(user_id)
     if not jwt_authentication.is_valid(token, user_id):
         raise HTTPException(status_code=401, detail="Unauthorized")
 

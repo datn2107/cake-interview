@@ -17,13 +17,10 @@ from message_queue.consumers.promotion import handle_promotion_message
 async def lifespan(app: FastAPI):
     # run as a startup event
     MongoDb.connect()
-
     # loop = asyncio.get_event_loop()
     # task = loop.create_task(handle_promotion_message(loop))
     # await task
-
     yield
-
     # run as a shutdown event
     # loop.close()
     MongoDb.disconnect()
