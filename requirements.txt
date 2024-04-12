@@ -1,10 +1,12 @@
 fastapi
 aioredis
 pymongo[srv]
+motor
 pydantic
 pydantic[email]
 uvicorn
 python-dotenv
 pyjwt
 cryptography
-motor
+pika
+aio-pika

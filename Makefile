@@ -1,6 +1,6 @@
 run:
 	@echo "Running server..."
-	@cd ${app} && uvicorn main:app --reload
+	@cd ${app} && uvicorn main:app --reload --host localhost --port ${port}
 
 create-migration:
 	@echo "Creating migration file in ${app}/migrations..."

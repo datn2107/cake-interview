@@ -32,54 +32,52 @@
 ### User
 ```json
 {
-    "id": "uuid",
+    "_id": "string",
     "username": "string", // index
     "email": "string", // index
     "phone": "string", // index
     "password": "string",
     "full_name": "string",
     "birthday": "datetime",
-    "is_active": "number",
+    "is_active": "boolean",
+    "is_admin": "boolean",
     "is_first_login": "number",
-    "created_at": "datetime",
-    "updated_at": "datetime"
 }
 ```
 ### Promotion Campaign
 ```json
 {
-    "id": "uuid",
+    "_id": "string",
     "name": "string",
     "discount": "number",
-    "remaining_promotion": "number", // compostite index (is_available, remaining_promotion)
-    "number_of_promotion": "number",
-    "is_available": "number",
-    "description": "string",
-    "created_at": "datetime",
-    "updated_at": "datetime"
+    "voucher_duration": "number",
+    "remaining_vouchers": "number", // compostite index (is_available, remaining_promotion)
+    "number_of_vouchers": "number",
+    "is_available": "boolean",
+    "description": "string"
 }
 ```
 ### Voucher
 ```json
 {
-    "id": "uuid",
-    "user_id": "uuid", // composite index (user_id, is_available)
-    "campaign_id": "uuid",
+    "_id": "string",
+    "user_id": "string", // index
+    "campaign_id": "string", // index
     "description": "string",
-    "expire_at": "datatime",
-    "discount": "number",
-    "is_available": "number",
-    "created_at": "datetime",
-    "updated_at": "datetime"
+    "expired_at": "datatime",
+    "discount": "number"
 }
 ```
 
 ## Work Flow
 ### User create an account
-![Register](docs/images/register.png)
+![Register](docs/images/user_register.png)
 
 ### User login to their account
-![Login](docs/images/login.png)
+![Login](docs/images/user_login.png)
+
+### Create a promotion campaign
+![Promotion](docs/images/create_campaign.png)
 
 ### Promotion service handle the first login user
 ![Promotion](docs/images/create_voucher.png)
@@ -134,8 +132,8 @@
         "message": "error message"
     }
     ```
-3. **Get Voucher**
-    - **URL**: `/voucher`
+3. **Get Vounchers**
+    - **URL**: `/vouchers`
     - **Method**: `GET`
     - **Request Header**:
     ```json
@@ -147,14 +145,57 @@
     ```json
     { // 200 OK
         "status": "success",
-        "voucher": {
-            "description": "string",
-            "discount": "number",
-            "expire_at": "datetime"
-        }
+        "vouchers": [
+            {
+                "id": "string",
+                "user_id": "string",
+                "campaign_id": "string",
+                "description": "string",
+                "expired_at": "datatime",
+                "discount": "number"
+            }
+        ]
     }
     { // 400 Bad Request
         "status": "error",
         "message": "error message"
+    }
+    ```
+4. **Redeem Voucher**
+    - **URL**: `/vouchers/redeem`
+    - **Method**: `POST`
+    - **Request Header**:
+    ```json
+    {
+        "Authorization": "Bearer <token>"
+    }
+    ```
+    - **Request Body**:
+    ```json
+    { // 200 OK
+        "status": "success",
+        "message": "Voucher redeemed"
+    }
+    { // 400 Bad Request
+        "status": "error",
+        "message": "error message"
+    }
+    ```
+5. **Create Campaign**
+    - **URL**: `/campaigns`
+    - **Method**: `POST`
+    - **Request Header**:
+    ```json
+    {
+        "Authorization": "Bearer <token>"
+    }
+    ```
+    - **Request Body**:
+    ```json
+    {
+        "name": "string",
+        "discount": "number",
+        "number_of_vouchers": "number",
+        "description": "string"
     }
     ```

@@ -3,12 +3,11 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from dependencies.logger import logger
 from dependencies.database import MongoDb
 from dependencies.jwt import JWTAuthenticationFactory, JWTAuthentication
 from message_queue.producer.promotion import push_promotion_message
-from repositories.user_repository import UserRepository
-from models.user import User, UserRegisterViewModel, UserLoginViewModel
+from repositories import UserRepository
+from models.user import UserRegisterViewModel, UserLoginViewModel
 
 
 router = APIRouter()
@@ -31,7 +30,9 @@ async def create_user(user_register: UserRegisterViewModel) -> JSONResponse:
 @router.post("/users/login")
 async def login_user(user_login: UserLoginViewModel) -> JSONResponse:
     user_repository = UserRepository(MongoDb.database)
-    jwt_authentication = JWTAuthenticationFactory.create("RS256", os.getenv("PRIVATE_KEY"), os.getenv("PUBLIC_KEY"))
+    jwt_authentication = JWTAuthenticationFactory.create(
+        "RS256", os.getenv("PRIVATE_KEY"), os.getenv("PUBLIC_KEY")
+    )
 
     user = await user_repository.find_by_identifier(user_login.identifier)
 
@@ -51,10 +52,6 @@ async def login_user(user_login: UserLoginViewModel) -> JSONResponse:
         }
         await push_promotion_message(payload, os.getenv("MQ_PROMOTION_ROUTING_KEY"))
 
-        logger.info(
-            f"User {user.id} is first login. Pushed message to promotion service."
-        )
-
     expired_at = datetime.now(timezone.utc) + timedelta(
         minutes=int(os.getenv("JWT_EXPIRED_MINUTES"))
     )
@@ -65,4 +62,4 @@ async def login_user(user_login: UserLoginViewModel) -> JSONResponse:
     }
     token = jwt_authentication.generate_token(payload)
 
-    return JSONResponse(status_code=200, content={"token": token})
+    return JSONResponse(status_code=200, content={"user_id": user.id, "token": token})
