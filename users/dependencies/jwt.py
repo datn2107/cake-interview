@@ -20,18 +20,14 @@ class JWTAuthentication:
 
 
 class JWTAuthenticationFactory:
-    def __init__(self, algorithm: str, secret_key: str, public_key: str = None):
-        self.algorithm = algorithm
-        self.secret_key = secret_key
-        self.public_key = public_key
-
-    def __call__(self) -> JWTAuthentication:
-        if self.algorithm == "HS256":
-            return JWTAuthenticationSHA256(self.secret_key)
-        elif self.algorithm == "RSA":
-            return JWTAuthenticationRSA(self.secret_key, self.public_key)
+    @staticmethod
+    def create(algorithm: str, private_key: str = None, public_key: str = None) -> JWTAuthentication:
+        if algorithm == "HS256":
+            return JWTAuthenticationSHA256(private_key)
+        elif algorithm == "RS256":
+            return JWTAuthenticationRSA(private_key, public_key)
         else:
-            raise NotImplementedError
+            raise ValueError("Algorithm is not supported")
 
 
 class JWTAuthenticationSHA256(JWTAuthentication):

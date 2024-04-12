@@ -3,12 +3,8 @@ import aio_pika
 from aio_pika import connect_robust, Message, DeliveryMode
 
 
-async def push_message_queue(payload: dict, routing_key: str) -> None:
-    connection = await connect_robust(
-        os.getenv("MQ_URI"),
-    )
-
-    async with connection:
+async def push_promotion_message(payload: dict, routing_key: str) -> None:
+    async with connect_robust(os.getenv("MQ_URL")) as connection:
         channel = await connection.channel()
 
         await channel.default_exchange.publish(

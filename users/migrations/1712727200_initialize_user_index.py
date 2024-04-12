@@ -1,6 +1,6 @@
-from dependencies.database import database
+from dependencies.database import MongoDb
 
-users_collection = database.get_collection("users")
+users_collection = MongoDb.database.get_collection("users")
 
 users_collection.create_index("username")
 users_collection.create_index("email")

@@ -4,8 +4,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class LoggerMiddleware(BaseHTTPMiddleware):
-    logger: Logger
-
     def __init__(self, app, logger: Logger) -> None:
         super().__init__(app)
         self.logger = logger
