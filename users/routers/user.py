@@ -3,8 +3,10 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
+from dependencies.logger import logger
 from dependencies.database import database
 from dependencies.jwt import JWTAuthenticationFactory, JWTAuthentication
+from dependencies.message_queue import push_message_queue
 from repositories import RepositoryFactory, UserRepository
 from models.user import User, UserRegisterViewModel, UserLoginViewModel
 
@@ -46,9 +48,17 @@ async def login_user(
 
     if user.is_first_login:
         user.is_first_login = False
-        await user_repository.update(user)
+        await user_repository.update_first_login(user)
 
-        # TO DO: send user infor to promotion service
+        payload = {
+            "user_id": user.id,
+            "user_identifier": user_login.identifier,
+            "is_admin": user.is_admin
+        }
+        await push_message_queue(payload, os.getenv("MQ_PROMOTION_ROUTING_KEY"))
+
+        logger.info(f"User {user.id} is first login. Pushed message to promotion service.")
+
 
     expired_at = datetime.now(timezone.utc) + timedelta(
         minutes=int(os.getenv("JWT_EXPIRED_MINUTES"))

@@ -6,10 +6,12 @@ from models.user import User
 
 
 class UserRepository:
+    COLLECTION_NAME = "users"
+
     collections: Collection
 
     def __init__(self, db: Database):
-        self.collections = db.get_collection("users")
+        self.collections = db.get_collection(self.COLLECTION_NAME)
 
     async def find_by_identifier(self, identifier: str) -> User:
         user_in_db = await self.collections.find_one(
@@ -41,8 +43,8 @@ class UserRepository:
         user_in_db = await self.collections.insert_one(user.model_dump())
         return user_in_db.inserted_id
 
-    async def update(self, user: User) -> str:
+    async def update_first_login(self, user: User) -> str:
         user_in_db = await self.collections.update_one(
-            {"_id": ObjectId(user.id)}, {"$set": user.model_dump()}
+            {"_id": ObjectId(user.id)}, {"$set": {"is_first_login": False}}
         )
         return user_in_db.upserted_id

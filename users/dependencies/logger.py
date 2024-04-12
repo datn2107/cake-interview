@@ -25,3 +25,6 @@ class MyLogger(Logger):
         info_file_handler.setFormatter(LOGGING_FORMAT)
 
         self.handlers = [stream_handler, error_file_handler, info_file_handler]
+
+
+logger = MyLogger(os.path.basename(os.path.dirname(os.path.dirname(__file__))))

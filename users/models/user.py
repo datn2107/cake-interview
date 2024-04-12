@@ -12,10 +12,9 @@ class User(BaseModel):
     password: str
     full_name: str
     birthday: str
+    is_admin: bool = False
     is_active: bool
     is_first_login: bool
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         from_atributes = True
@@ -48,9 +47,7 @@ class UserRegisterViewModel(BaseModel):
             full_name=self.full_name,
             birthday=self.birthday.strftime(os.getenv("DATE_FORMAT")),
             is_active=True,
-            is_first_login=True,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            is_first_login=True
         )
 
 
