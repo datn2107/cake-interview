@@ -10,20 +10,21 @@ from dependencies.database import MongoDb
 from dependencies.middlewares import LoggerMiddleware
 from dependencies.logger import web_logger as logger
 from routers import voucher, campaign
-from message_queue.consumers.promotion import handle_promotion_message
+
+
+async def startup_event():
+    MongoDb.connect()
+
+
+async def shutdown_event():
+    MongoDb.disconnect()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # run as a startup event
-    MongoDb.connect()
-    # loop = asyncio.get_event_loop()
-    # task = loop.create_task(handle_promotion_message(loop))
-    # await task
+    await startup_event()
     yield
-    # run as a shutdown event
-    # loop.close()
-    MongoDb.disconnect()
+    await shutdown_event()
 
 
 app = FastAPI(lifespan=lifespan)

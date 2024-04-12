@@ -2,6 +2,10 @@ run:
 	@echo "Running server..."
 	@cd ${app} && uvicorn main:app --reload --host localhost --port ${port}
 
+run-consumer:
+	@echo "Running consumer..."
+	@cd ${app} && python3 consumer.py
+
 create-migration:
 	@echo "Creating migration file in ${app}/migrations..."
 	@mkdir -p ${app}/migrations
@@ -12,3 +16,8 @@ migrate:
 	@echo "Running migration..."
 	@python3 ${app}/migrate.py
 	@echo "Migration complete."
+
+clear-cache:
+	@echo "Clearing cache..."
+	@find . -name '__pycache__' -type d -exec rm -rf {} +
+	@echo "Cache cleared."

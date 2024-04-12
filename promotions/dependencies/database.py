@@ -1,5 +1,5 @@
 import os
-import motor.motor_asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 
 
 class MongoDb:
@@ -8,7 +8,7 @@ class MongoDb:
 
     @staticmethod
     def connect():
-        MongoDb.client = motor.motor_asyncio.AsyncIOMotorClient(
+        MongoDb.client = AsyncIOMotorClient(
             os.getenv("DB_URI").format(
                 username=os.getenv("DB_USERNAME"), password=os.getenv("DB_PASSWORD")
             ),
