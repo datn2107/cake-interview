@@ -4,14 +4,48 @@ import traceback
 from datetime import datetime, timezone, timedelta
 from aio_pika import connect_robust
 from aio_pika.abc import AbstractIncomingMessage
+from motor.motor_asyncio import AsyncIOMotorClientSession as AgnosticClientSession
 
-from dependencies.logger import rabbitmq_logger as logger
-from dependencies.database import MongoDb
-from models.voucher import Voucher
+from models import Voucher, Campaign
 from repositories import VoucherRepository, CampaignRepository
+from dependencies.database import MongoDb
+from dependencies.logger import rabbitmq_logger as logger
 
 
-async def add_promotion(message: AbstractIncomingMessage):
+def create_voucher(payload: dict, available_campaign: Campaign):
+    return Voucher(
+        id=None,
+        user_id=payload["user_id"],
+        campaign_id=available_campaign.id,
+        discount=available_campaign.discount,
+        expired_at=(
+            datetime.now(timezone.utc)
+            + timedelta(days=available_campaign.voucher_duration)
+        ).strftime(os.getenv("DATETIME_FORMAT")),
+        description=available_campaign.description,
+    )
+
+
+@MongoDb.transaction
+async def add_promotion(payload: dict, session: AgnosticClientSession):
+    voucher_repository = VoucherRepository(MongoDb.database)
+    campaign_repository = CampaignRepository(MongoDb.database)
+
+    available_campaign = await campaign_repository.find_available_campaign(
+        session=payload["session"]
+    )
+
+    if available_campaign is not None:
+        voucher = create_voucher(payload, available_campaign)
+
+        await voucher_repository.create(voucher, session=payload["session"])
+        await campaign_repository.decrease_voucher_from_campaign(
+            available_campaign.id, session=payload["session"]
+        )
+        logger.info(f"Voucher created for user {payload['user_id']}")
+
+
+async def process_message(message: AbstractIncomingMessage):
     logger.info(f"Received message: {message.body}")
     async with message.process(ignore_processed=True, requeue=True):
         sucess = False
@@ -19,36 +53,10 @@ async def add_promotion(message: AbstractIncomingMessage):
             payload = message.body.decode()
             payload = eval(payload)
 
-            async with await MongoDb.client.start_session() as session:
-                voucher_repository = VoucherRepository(MongoDb.database)
-                campaign_repository = CampaignRepository(MongoDb.database)
+            await add_promotion(payload)
+            await message.ack()
 
-                async with session.start_transaction():
-                    available_campaign = (
-                        await campaign_repository.find_available_campaign(
-                            session=session
-                        )
-                    )
-
-                    if available_campaign is not None:
-                        voucher = Voucher(
-                            id=None,
-                            user_id=payload["user_id"],
-                            campaign_id=available_campaign.id,
-                            discount=available_campaign.discount,
-                            expired_at=datetime.now(timezone.utc)
-                            + timedelta(days=available_campaign.voucher_duration),
-                            description=available_campaign.description,
-                        )
-
-                        await voucher_repository.create(voucher, session=session)
-                        await campaign_repository.decrease_voucher_from_campaign(
-                            available_campaign.id, session=session
-                        )
-                        logger.info(f"Voucher created for user {payload['user_id']}")
-
-                await message.ack()
-                sucess = True
+            sucess = True
             logger.info("Message processed successfully")
         except Exception as e:
             logger.error(f"Error processing message: {e}")
@@ -68,5 +76,4 @@ async def consume_promotion_messages(loop):
         )
 
         await queue.consume(add_promotion)
-
         await asyncio.Future()

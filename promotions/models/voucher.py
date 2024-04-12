@@ -9,7 +9,7 @@ class Voucher(MongoDbBaseModel):
     user_id: str
     campaign_id: str
     description: str | None
-    expired_at: datetime
+    expired_at: str
     discount: int
 
     class Config:

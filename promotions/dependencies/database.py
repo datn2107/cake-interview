@@ -19,3 +19,11 @@ class MongoDb:
     @staticmethod
     def disconnect():
         MongoDb.client.close()
+
+    @staticmethod
+    def transaction(func):
+        async def wrapper(*args, **kwargs):
+            async with await MongoDb.client.start_session() as session:
+                async with session.start_transaction():
+                    return await func(*args, **kwargs, session=session)
+        return wrapper

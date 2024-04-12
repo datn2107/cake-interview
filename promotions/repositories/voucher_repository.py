@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List
 from motor.motor_asyncio import AsyncIOMotorDatabase as Database
 from motor.motor_asyncio import AsyncIOMotorCollection as Collection
@@ -52,7 +52,7 @@ class VoucherRepository:
     ) -> str:
         voucher_in_db = await self.collections.update_one(
             {"_id": ObjectId(voucher.id)},
-            {"$set": {"redeemed_at": datetime.now()}},
+            {"$set": {"redeemed_at": datetime.now(timezone.utc) - timedelta(hours=1)}},
             session=session,
         )
         return voucher_in_db.upserted_id

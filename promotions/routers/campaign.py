@@ -13,13 +13,15 @@ from dependencies.jwt import JWTAuthenticationFactory, JWTAuthentication
 router = APIRouter()
 
 
-@router.post("/create_campaign")
+@router.post("/campaigns/create")
 async def create_campaign(
     campaign_view: CampaignCreateViewModel,
-    authorization: Annotated[str, Header()] = None
+    authorization: Annotated[str, Header()] = None,
 ) -> JSONResponse:
     campaign_repository = CampaignRepository(MongoDb.database)
-    jwt_authentication = JWTAuthenticationFactory.create("RS256", os.getenv("PRIVATE_KEY"), os.getenv("PUBLIC_KEY"))
+    jwt_authentication = JWTAuthenticationFactory.create(
+        "RS256", os.getenv("PRIVATE_KEY"), os.getenv("PUBLIC_KEY")
+    )
 
     if authorization is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
