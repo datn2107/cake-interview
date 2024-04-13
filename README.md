@@ -11,7 +11,7 @@ Table of Contents
 * [Cases Can and Can't Handle](#cases-can-and-cant-handle)
 
 Another document:
-- [Implementation](docs/implementation.md)
+- [Detail Implementation and Code Structure](docs/implementation.md)
 - [Data Schema](docs/data_schema.md)
 - [API Documentation](docs/api_documentation.md)
 
