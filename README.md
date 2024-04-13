@@ -79,11 +79,15 @@ Another document:
     - Just try to make my code easy to scale horizontally, so it can be easily integrated with the load balancer.
 
 # Cases Can and Can't Handle
-- Mutliple users requests to the same api at the same time. For exmaple: 2 user first login at the same time, but the number of promotion is only 1.
+### Can Handle
+- Data consistency when mutliple users requests to the same api at the same time. For exmaple: 2 user first login at the same time, but the number of promotion is only 1.
     + Using database transaction to ensure the data consistency.
     + Mongodb support [Optimistic Locking](https://en.wikipedia.org/wiki/Optimistic_concurrency_control) to handle the transaction. If the (readed) data is changed by another user, the transaction will be aborted and retry
+### Can't Handle
 - The user first login order can't be guaranteed.
     + The message queue will ensure that the message will be processed in the order.
     + But the consumer can handle the message concurrently, so the order of the message will not be guaranteed.
 - The consumer and the server can't be run in the same process.
     + Because the limitation of the current knowledge, I can't make the consumer and the server run in the same process.
+- Multiple device login at the same time.
+    + My code doesn't handle this, it allows multiple devices login at the same time.
