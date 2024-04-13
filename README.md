@@ -1,3 +1,20 @@
+> **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts.
+
+Table of Contents
+=================
+
+* [Requirements](#requirements)
+* [Analysis and Assumptions](#analysis-and-assumptions)
+* [Solution](#solution)
+    * [System Architecture](#system-architecture)
+    * [Technology Stack](#technology-stack)
+* [Cases Can and Can't Handle](#cases-can-and-cant-handle)
+
+Another document:
+- [Implementation](docs/implementation.md)
+- [Data Schema](docs/data_schema.md)
+- [API Documentation](docs/api_documentation.md)
+
 # Requirements
 1. The login/create system:
     - User can create an account
@@ -7,195 +24,60 @@
     - This discount will be applied to the
 
 # Analysis and Assumptions
-1. For the login/create system:
-    - Because the system serve for the bank so one user only have one account.
-    - Because the system serve for the bank so the login session/token will be expired after 30 minutes, for the security reason. After that, user has to login again.
-    - Because I only care about the backend, I will assume that the data send to server has beed encrypted and sent securely by TLS or the similar protocol.
-2. For the promotion system:
-    - There is only one campaign at a time. Because if it multiple campagain we could handle it by increasing number of users will get discount.
-
+- Because this is the service for the bank system, so I have some assumptions:
+    - *One user can have only one account*, which means the username, email, and phone number must be unique.
+    - *The session/token will be expired after 30 minutes*, for the security reason of the bank system.
+    - Assume that the payload send to server on the sercure protocol (HTTPS).
+- Based on the requirements and the assumptions, I have some analysis:
+    - The number of users is not too much, so the system doesn't need to handle the request from the large number of users.
+    - The number of messages is not too much, so the message queue doesn't need to handle the large number of messages.
+    - The data is not shared between the users, so the cache system will not be effective in this case.
+    - The data is not relational, so the NoSQL database is suitable for this case.
+    - The number of read operations is much more than the number of write operations, so the database must be optimized for read operations.
 # Solution
-* Authentication method: **JWT Token**
-    - I use the token-based authentication, which will reduce the load on the server and make the system easier to scale.
-    - The signature of JWT will be encrypted by asymmetric encryption (RSA), to make other service verify the token without requiring the secret key and request to the login service.
-* Framework: **FastAPI**
-    - I use FastAPI, because it is one of the fastest web frameworks for Python. It is also support asyncio, which is good for the system that need to handle many concurrent requests.
-* Database: **MongoDB**
-    - I use MongoDB, because the system doesn't need to have a complex relationship between the data, and it easy to scale horizontally.
+
 ## System Architecture
 ![System Architecture](docs/images/system_diagram.png)
-- **Server**: In order to serve 100000 users, we need to have server that can be scaled horizontally. And we also need to have a load balancer to distribute the load to the servers.
-- **Database**: Because the number of write operations is less than the number of read operations, so to scale database I choose to create duplicate read-only databases and use the load balancer to distribute the read operations to the databases. And also have the support of the cache system to reduce the load on the database.
-- **Message Queue**: To connect between login service and promotion service, I use the message queue to send the message from login service to promotion service.
+- **Server**:
+    - Scale the server horizontally by increase multiple servers and spawn multiple processers.
+    - Use a load balancer to distribute the load to the servers.
+- **MQ Consummer**:
+    - It can be scaled horizontally by increase multiple servers and spawn multiple processers.
+    - The queue broker of RabbitMQ will be the load balancer to distribute the message to the consumers.
+- **Database**:
+    - Scale the database horizontally by duplicating the read-only databases, because the number of read operations is much more than the number of write operations.
+    - Use the load balancer to distribute the read request to the read-only databases.
+    - We can also use sharding to scale the database to support if the number of users is become larger.
+- **Message Queue**:
+    - Use message queue (worker queue) to handle the message between the login service and promotion service.
+    = Use only one queue with multiple consumers to handle the message concurrently.
+- **No Cache**:
+    - I don't use cache in these systems, because the data is not shared too much between the users, each user has their own data, so the cache system will not be effective in this case.
 
-## Data Schema
-### User
-```json
-{
-    "_id": "string",
-    "username": "string", // index
-    "email": "string", // index
-    "phone": "string", // index
-    "password": "string",
-    "full_name": "string",
-    "birthday": "datetime",
-    "is_active": "boolean",
-    "is_admin": "boolean",
-    "is_first_login": "number",
-}
-```
-### Promotion Campaign
-```json
-{
-    "_id": "string",
-    "name": "string",
-    "discount": "number",
-    "voucher_duration": "number",
-    "remaining_vouchers": "number", // compostite index (is_available, remaining_promotion)
-    "number_of_vouchers": "number",
-    "is_available": "boolean",
-    "description": "string"
-}
-```
-### Voucher
-```json
-{
-    "_id": "string",
-    "user_id": "string", // index
-    "campaign_id": "string", // index
-    "description": "string",
-    "expired_at": "datatime",
-    "discount": "number"
-}
-```
+## Technology Stack
+* Authentication method: **JWT Token**
+    - It doesn't need to store the session in the server, reduce the load of the server.
+    - Encrypt by asymmetric algorithm, so the token can be verified without revealing the secret key (sercurity reason).
+* Framework: **FastAPI**
+    - It support asyncio, which is handle multiple requests concurrently in a single process.
+* Server: **Uvicorn**
+    - It is a lightning-fast ASGI server implementation, suitable for async frameworks like FastAPI.
+    - It supports spawn multiple processes to handle the request parallelly.
+* Message Queue: **RabbitMQ**
+    - Becasue the number of messages is not too much, so we don't need a horizontally scalable message queue like Kafka. For simplicity, RabbitMQ has enough features to handle it.
+    - Use lazy queue, and durable message to ensure that the message will not be lost when the server is down or out of memory.
+    - For more detail about the implement of RabbitMQ, please refer to the [Implementation](docs/implementation.md) document.
+* Database: **MongoDB**
+    - It data doesn't have the relationship between the collections, so the NoSQL database is suitable for this case.
+    - It can be easily scaled horizontally, by sharding the data or create the replica set.
+    - For more detail about schema, and index in each collection, please refer to the [Data Schema](docs/data_schema.md) document.
 
-## Work Flow
-### User create an account
-![Register](docs/images/user_register.png)
-
-### User login to their account
-![Login](docs/images/user_login.png)
-
-### Create a promotion campaign
-![Promotion](docs/images/create_campaign.png)
-
-### Promotion service handle the first login user
-![Promotion](docs/images/create_voucher.png)
-
-### User get the promotion
-![Promotion](docs/images/get_promotion.png)
-
-
-# API Documentation
-1. **Register**
-    - **URL**: `/register`
-    - **Method**: `POST`
-    - **Request Body**:
-    ```json
-    {
-        "username": "string",
-        "email": "string",
-        "phone": "string",
-        "password": "string",
-        "full_name": "string",
-        "birthday": "datetime"
-    }
-    ```
-    - **Response**:
-    ```json
-    { // 200 OK
-        "status": "success",
-    }
-    { // 400 Bad Request
-        "status": "error",
-        "message": "error message"
-    }
-    ```
-2. **Login**
-    - **URL**: `/login`
-    - **Method**: `POST`
-    - **Request Body**:
-    ```json
-    {
-        "username": "string",
-        "password": "string"
-    }
-    ```
-    - **Response**:
-    ```json
-    { // 200 OK
-        "status": "success",
-        "token": "string"
-    }
-    { // 400 Bad Request
-        "status": "error",
-        "message": "error message"
-    }
-    ```
-3. **Get Vounchers**
-    - **URL**: `/vouchers`
-    - **Method**: `GET`
-    - **Request Header**:
-    ```json
-    {
-        "Authorization": "Bearer <token>"
-    }
-    ```
-    - **Response**:
-    ```json
-    { // 200 OK
-        "status": "success",
-        "vouchers": [
-            {
-                "id": "string",
-                "user_id": "string",
-                "campaign_id": "string",
-                "description": "string",
-                "expired_at": "datatime",
-                "discount": "number"
-            }
-        ]
-    }
-    { // 400 Bad Request
-        "status": "error",
-        "message": "error message"
-    }
-    ```
-4. **Redeem Voucher**
-    - **URL**: `/vouchers/redeem`
-    - **Method**: `POST`
-    - **Request Header**:
-    ```json
-    {
-        "Authorization": "Bearer <token>"
-    }
-    ```
-    - **Request Body**:
-    ```json
-    { // 200 OK
-        "status": "success",
-        "message": "Voucher redeemed"
-    }
-    { // 400 Bad Request
-        "status": "error",
-        "message": "error message"
-    }
-    ```
-5. **Create Campaign**
-    - **URL**: `/campaigns`
-    - **Method**: `POST`
-    - **Request Header**:
-    ```json
-    {
-        "Authorization": "Bearer <token>"
-    }
-    ```
-    - **Request Body**:
-    ```json
-    {
-        "name": "string",
-        "discount": "number",
-        "number_of_vouchers": "number",
-        "description": "string"
-    }
-    ```
+# Cases Can and Can't Handle
+- Mutliple users requests to the same api at the same time. For exmaple: 2 user first login at the same time, but the number of promotion is only 1.
+    + Using database transaction to ensure the data consistency.
+    + Mongodb support [Optimistic Locking](https://en.wikipedia.org/wiki/Optimistic_concurrency_control) to handle the transaction. If the (readed) data is changed by another user, the transaction will be aborted and retry
+- The user first login order can't be guaranteed.
+    + The message queue will ensure that the message will be processed in the order.
+    + But the consumer can handle the message concurrently, so the order of the message will not be guaranteed.
+- The consumer and the server can't be run in the same process.
+    + Because the limitation of the current knowledge, I can't make the consumer and the server run in the same process.

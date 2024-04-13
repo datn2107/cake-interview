@@ -1,10 +1,10 @@
 run:
 	@echo "Running server..."
-	@cd ${app} && uvicorn main:app --reload --host localhost --port ${port}
+	@cd ${app} && uvicorn main:app --reload --host localhost --port ${port} --workers ${workers}
 
 run-consumer:
 	@echo "Running consumer..."
-	@cd ${app} && python3 consumer.py
+	@cd ${app} && python3 consumer.py --tasks ${tasks}
 
 create-migration:
 	@echo "Creating migration file in ${app}/migrations..."
