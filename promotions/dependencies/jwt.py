@@ -10,7 +10,7 @@ class JWTAuthentication:
     def get_payload(self, token: str) -> dict:
         raise NotImplementedError
 
-    def is_valid(self, token: str, user_id: int = None) -> bool:
+    def is_valid(self, token: str, user_id: str = None) -> bool:
         payload = self.get_payload(token)
         current_time = datetime.now(timezone.utc).strftime(os.getenv("DATETIME_FORMAT"))
 

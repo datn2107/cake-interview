@@ -1,11 +1,23 @@
 import os
 import dotenv
 import asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
 
 dotenv.load_dotenv()
 
 from dependencies.logger import migrations_logger as logger
 from dependencies.database import MongoDb
+
+
+def run_migration(migration: str, migrations_collection: AsyncIOMotorClient):
+    try:
+        exec(open(f"{migration_dir}/{migration}").read())
+    except Exception as e:
+        logger.error(f"Failed to run migration {migration}: {e}")
+        return
+
+    migrations_collection.insert_one({"name": migration})
+    logger.info(f"Migration {migration} has been run successfully")
 
 
 if __name__ == "__main__":
@@ -29,13 +41,6 @@ if __name__ == "__main__":
             if migration_in_db is not None:
                 continue
 
-            try:
-                exec(open(f"{migration_dir}/{migration}").read())
-            except Exception as e:
-                logger.error(f"Failed to run migration {migration}: {e}")
-                continue
-
-            loop.run_until_complete(migrations_collection.insert_one({"name": migration}))
-            logger.info(f"Migration {migration} has been run successfully")
+            run_migration(migration, migrations_collection)
     finally:
         MongoDb.disconnect()

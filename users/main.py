@@ -11,15 +11,19 @@ from dependencies.middlewares import LoggerMiddleware
 from routers import user
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # run as a startup event
+async def startup_event():
     MongoDb.connect()
 
-    yield
 
-    # run as a shutdown event
+async def shutdown_event():
     MongoDb.disconnect()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await startup_event()
+    yield
+    await shutdown_event()
 
 
 app = FastAPI(lifespan=lifespan)

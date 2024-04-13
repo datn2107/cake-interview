@@ -27,7 +27,7 @@ def create_voucher(payload: dict, available_campaign: Campaign):
 
 
 @MongoDb.transaction
-async def add_promotion(payload: dict, session: AgnosticClientSession):
+async def add_promotion_transaction(payload: dict, session: AgnosticClientSession):
     voucher_repository = VoucherRepository(MongoDb.database)
     campaign_repository = CampaignRepository(MongoDb.database)
 
@@ -53,7 +53,7 @@ async def process_message(message: AbstractIncomingMessage):
             payload = message.body.decode()
             payload = eval(payload)
 
-            await add_promotion(payload)
+            await add_promotion_transaction(payload)
             await message.ack()
 
             sucess = True
@@ -75,5 +75,5 @@ async def consume_promotion_messages(loop, num_tasks=1):
             os.getenv("MQ_PROMOTION_ROUTING_KEY"), durable=True, auto_delete=False
         )
 
-        await queue.consume(add_promotion)
+        await queue.consume(process_message)
         await asyncio.Future()

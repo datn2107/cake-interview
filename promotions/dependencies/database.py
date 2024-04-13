@@ -26,4 +26,5 @@ class MongoDb:
             async with await MongoDb.client.start_session() as session:
                 async with session.start_transaction():
                     return await func(*args, **kwargs, session=session)
+
         return wrapper
