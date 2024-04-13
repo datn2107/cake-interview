@@ -1,5 +1,21 @@
 > **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts in  `users` and `promotion` directories.
 
+# Work Flow
+### User create an account
+![Register](images/user_register.png)
+
+### User login to their account
+![Login](images/user_login.png)
+
+### Create a promotion campaign
+![Promotion](images/create_campaign.png)
+
+### Promotion service handle the first login user
+![Promotion](images/create_voucher.png)
+
+### User get the promotion
+![Promotion](images/get_promotion.png)
+
 # Implementation
 ## Migration
 - The migration will create the index for the collection in MongoDB
