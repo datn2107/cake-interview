@@ -23,7 +23,7 @@ Another document:
     - User can login to their account
 2. The promotion system:
     - The 100 first login users will get a 30% discount
-    - This discount will be applied to the
+    - This discount will be applied to the next purchase
 
 # Assumptions
 - Because this is the service for the bank system, so I have some assumptions:
@@ -31,11 +31,11 @@ Another document:
     - **The session/token will be expired after 30 minutes**, for the security reason of the bank system. So we also **don't need to implement refresh token**.
     - Assume that the payload send to server on the sercure protocol (HTTPS).
 # Insight
-- *The number of read operations is much more than the number of write operations*:
+- **The number of read operations is much more than the number of write operations**:
     - Because each person only has one account, so the request to create new account is not too much.
     - Because each campaign will only have 100 vouchers, so the request to create new voucher is not too much.
     - But the number of login request and query the voucher of the user is very much.
-- *The number of messages communicate between the login service and promotion service is not too much*:
+- **The number of messages communicate between the login service and promotion service is not too much**:
     - Because we only need to send the message when the user first login, which is not too much.
 
 # Work Flow

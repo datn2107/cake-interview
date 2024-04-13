@@ -29,8 +29,21 @@
     - `aio_pika` as the async RabbitMQ client
     - `motor` as the async MongoDB client
 
+## API
+- The API is built on top of `FastAPI` framework
+- The API of promotion service will need JWT token to authenticate the user
+- Detail of the API can be found in the [API Documentation](docs/api_documentation.md)
+
+## Database Transaction
+* For every sequence of read then write operation to the database, I will use the transaction to ensure the data consistency.
+* For example:
+    * Before create the voucher for the user, we need to check whether the campaign still has the voucher or not. Then create the voucher for the user and decrease the number of remaining voucher of the campaign.
+    * But in some case, after we check the number of remaining voucher, the number of remaining voucher is changed by the other request. So we need to rollback the transaction and retry the operation.
+* With this case MongoDB transaction will auto rollback and retry the operation for us.
+
+
 ## Message Queue
-Message Schema between login service and promotion service
+Message Schema between login service and promotion service.
 ```json
 {
     "user_id": "string",

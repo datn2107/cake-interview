@@ -17,11 +17,10 @@ from .handler.voucher import redeem_voucher_transaction
 router = APIRouter()
 
 
-@router.post("/vouchers")
+@router.get("/vouchers")
 async def get_vouchers(
     user_id: str,
-    authorization: Annotated[str | None, Header()] = None,
-    request: Request = None,
+    authorization: Annotated[str | None, Header()] = None
 ) -> JSONResponse:
     voucher_repository = VoucherRepository(MongoDb.database)
 
