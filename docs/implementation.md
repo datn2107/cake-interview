@@ -1,60 +1,6 @@
 > **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts.
 
 # Implementation
-## Installation and Run
-- Install the dependencies
-```bash
-python3 -m pip install -r requirements.txt
-```
-- Run migration to create index
-```bash
-make migrate app=users
-make migrate app=promotion
-```
-- Run the login service and promotion service
-```bash
-make run app=users port=5000 workers=4
-make run app=promotion port=5001 workers=4
-```
-**Note**: `workers` is number of processes that will be created to handle the request parallelly.
-- Run the consumer
-```bash
-make run-consumer tasks=4
-```
-**Note**: `tasks` is number of tasks that will be created to handle the message concurrently.
-
-## File Structure
-```bash
-app
-├── migrate.py # The entry point of the migration
-├── consumer.py # The entry point of the message queue consumer
-├── main.py # The entry point of the web service
-├── routes # Director contain the routes (api endpoints)
-│   ├── handler # Director contain the useful function to handle the request
-│   │   ├── user.py
-│   │   └── ...
-│   ├── user.py
-│   └── ...
-├── models # Directory contain the data model
-│   ├── user.py
-│   └── ...
-├── repositories # Directory contain the repository to interact with the database
-│   ├── user_repository.py
-│   └── ...
-├── dependencies # Directory contain the dependencies that will be used throughout the app
-│   ├── database.py
-│   ├── logger.py
-│   └── ...
-├── message_queue # Directory contain the code for the message queue
-│   ├── consumer # Directory contain the consumer code
-│   │   ├── promotion.py
-│   │   └── ...
-│   ├── producer # Directory contain the producer code
-│   │   ├── promotion.py
-│   │   └── ...
-└── logs # The log directory
-```
-
 ## Migration
 - The migration will create the index for the collection in MongoDB
 - Each migration will has the name as the format `{timestamp}_{migration_name}.py`
@@ -98,4 +44,82 @@ app
     │   ├── ...
     └── web
         ├── ...
+```
+
+## Installation and Run
+- Install the dependencies
+```bash
+python3 -m pip install -r requirements.txt
+```
+- Run migration to create index
+```bash
+make migrate app=users
+make migrate app=promotion
+```
+- Run the login service and promotion service
+```bash
+make run app=users port=5000 workers=4
+make run app=promotion port=5001 workers=4
+```
+**Note**: `workers` is number of processes that will be created to handle the request parallelly.
+- Run the consumer
+```bash
+make run-consumer tasks=4
+```
+**Note**: `tasks` is number of tasks that will be created to handle the message concurrently.
+
+## Environment Variables
+- The environment variables are stored in the `.env` file
+```bash
+DB_URI=""
+DB_NAME=""
+DB_USERNAME=""
+DB_PASSWORD=""
+
+PRIVATE_KEY=""
+PUBLIC_KEY=""
+
+JWT_EXPIRED_MINUTES=30
+
+DATE_FORMAT="%Y-%m-%d"
+DATETIME_FORMAT="%Y-%m-%d %H:%M:%S"
+
+INFO_LOG_FILE="info.log"
+ERROR_LOG_FILE="error.log"
+
+MQ_URI="amqp://admin:admin@localhost/"
+MQ_PROMOTION_ROUTING_KEY="promotion"
+```
+
+## File Structure
+```bash
+app
+├── migrate.py # The entry point of the migration
+├── consumer.py # The entry point of the message queue consumer
+├── main.py # The entry point of the web service
+├── .env # Configuration file
+├── routes # Director contain the routes (api endpoints)
+│   ├── handler # Director contain the useful function to handle the request
+│   │   ├── user.py
+│   │   └── ...
+│   ├── user.py
+│   └── ...
+├── models # Directory contain the data model
+│   ├── user.py
+│   └── ...
+├── repositories # Directory contain the repository to interact with the database
+│   ├── user_repository.py
+│   └── ...
+├── dependencies # Directory contain the dependencies that will be used throughout the app
+│   ├── database.py
+│   ├── logger.py
+│   └── ...
+├── message_queue # Directory contain the code for the message queue
+│   ├── consumer # Directory contain the consumer code
+│   │   ├── promotion.py
+│   │   └── ...
+│   ├── producer # Directory contain the producer code
+│   │   ├── promotion.py
+│   │   └── ...
+└── logs # The log directory
 ```

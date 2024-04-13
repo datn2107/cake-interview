@@ -14,6 +14,7 @@ Another document:
 - [Detail Implementation and Code Structure](docs/implementation.md)
 - [Data Schema](docs/data_schema.md)
 - [API Documentation](docs/api_documentation.md)
+- [Diagrams](https://drive.google.com/file/d/1qjLSvHa9UMELKau82q0liyZG0-yluR5_/view?usp=sharing)
 
 # Requirements
 1. The login/create system:
@@ -71,6 +72,9 @@ Another document:
     - It data doesn't have the relationship between the collections, so the NoSQL database is suitable for this case.
     - It can be easily scaled horizontally, by sharding the data or create the replica set.
     - For more detail about schema, and index in each collection, please refer to the [Data Schema](docs/data_schema.md) document.
+* Load Balancer:
+    - My code is not implement the load balancer, I think it beeter to use the load balancer from the cloud provider, because it is more stable and has more features.
+    - Just try to make my code easy to scale horizontally, so it can be easily integrated with the load balancer.
 
 # Cases Can and Can't Handle
 - Mutliple users requests to the same api at the same time. For exmaple: 2 user first login at the same time, but the number of promotion is only 1.
