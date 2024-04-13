@@ -1,4 +1,4 @@
-> **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts.
+> **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts in  `users` and `promotion` directories.
 
 Table of Contents
 =================
@@ -27,7 +27,7 @@ Another document:
 # Analysis and Assumptions
 - Because this is the service for the bank system, so I have some assumptions:
     - *One user can have only one account*, which means the username, email, and phone number must be unique.
-    - *The session/token will be expired after 30 minutes*, for the security reason of the bank system.
+    - *The session/token will be expired after 30 minutes*, for the security reason of the bank system. So we also *don't need to implement refresh token*.
     - Assume that the payload send to server on the sercure protocol (HTTPS).
 - Based on the requirements and the assumptions, I have some analysis:
     - The number of users is not too much, so the system doesn't need to handle the request from the large number of users.
@@ -42,23 +42,25 @@ Another document:
 - **Server**:
     - Scale the server horizontally by increase multiple servers and spawn multiple processers.
     - Use a load balancer to distribute the load to the servers.
-- **MQ Consummer**:
-    - It can be scaled horizontally by increase multiple servers and spawn multiple processers.
-    - The queue broker of RabbitMQ will be the load balancer to distribute the message to the consumers.
 - **Database**:
     - Scale the database horizontally by duplicating the read-only databases, because the number of read operations is much more than the number of write operations.
     - Use the load balancer to distribute the read request to the read-only databases.
     - We can also use sharding to scale the database to support if the number of users is become larger.
 - **Message Queue**:
     - Use message queue (worker queue) to handle the message between the login service and promotion service.
-    = Use only one queue with multiple consumers to handle the message concurrently.
+    - Use only one queue with multiple consumers to handle the message concurrently.
+    - Use message queue instead of direct call to avoid the delay or blocking when the user login.
+- **MQ Consummer**:
+    - It can be scaled horizontally by increase multiple servers and spawn multiple processers.
+    - The queue broker of RabbitMQ will be the load balancer to distribute the message to the consumers.
 - **No Cache**:
     - I don't use cache in these systems, because the data is not shared too much between the users, each user has their own data, so the cache system will not be effective in this case.
 
 ## Technology Stack
 * Authentication method: **JWT Token**
     - It doesn't need to store the session in the server, reduce the load of the server.
-    - Encrypt by asymmetric algorithm, so the token can be verified without revealing the secret key (sercurity reason).
+    - JWT will set the expiration time in the payload, so system will base on that to check the token is valid or not.
+    - Encrypt to get signature by asymmetric algorithm, so the token can be verified without revealing the secret key (sercurity reason).
 * Framework: **FastAPI**
     - It support asyncio, which is handle multiple requests concurrently in a single process.
 * Server: **Uvicorn**

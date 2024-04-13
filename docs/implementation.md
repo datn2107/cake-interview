@@ -1,4 +1,4 @@
-> **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts.
+> **Note**: I assume two services are from two different repositories, which means I can't utilize the code of the other service, so that the code may be duplicated a few parts in  `users` and `promotion` directories.
 
 # Implementation
 ## Migration
