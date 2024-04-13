@@ -2,19 +2,19 @@
 
 # Work Flow
 ## User create an account
-![Register](docs/images/user_register.png)
+![Register](images/user_register.png)
 
 ## User login to their account
-![Login](docs/images/user_login.png)
+![Login](images/user_login.png)
 
 ## Create a promotion campaign
-![Promotion](docs/images/create_campaign.png)
+![Promotion](images/create_campaign.png)
 
 ## Promotion service handle the first login user
-![Promotion](docs/images/create_voucher.png)
+![Promotion](images/create_voucher.png)
 
 ## User get the promotion
-![Promotion](docs/images/get_promotion.png)
+![Promotion](images/get_promotion.png)
 
 # API Documentation
 1. **Register**

@@ -5,6 +5,7 @@
     "_id": "string",
     "name": "string"
 }
+```
 ## User
 ```json
 {
