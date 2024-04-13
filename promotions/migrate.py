@@ -17,10 +17,12 @@ if __name__ == "__main__":
         app_name = os.path.basename(os.path.dirname(__file__))
         migration_dir = os.path.join(app_name, "migrations")
 
-        for migration in os.listdir(migration_dir):
+        migrations = os.listdir(migration_dir)
+        migrations.sort()
+        for migration in migrations:
             if not migration.endswith(".py") or migration == "__init__.py":
                 continue
-            
+
             migration_in_db = loop.run_until_complete(
                 migrations_collection.find_one({"name": migration})
             )

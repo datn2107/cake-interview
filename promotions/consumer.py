@@ -10,14 +10,15 @@ from message_queue.consumers.promotion import consume_promotion_messages
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tasks", type=int, default=2, help="Number of tasks will handle concurrently")
+    parser.add_argument("--tasks", type=int, default=1, help="Number of tasks will handle concurrently")
+    num_tasks = parser.parse_args().tasks
 
     try:
         MongoDb.connect()
 
         loop = asyncio.get_event_loop()
-        for _ in range(parser.parse_args().tasks):
-            loop.create_task(consume_promotion_messages(loop))
+        for _ in range(num_tasks):
+            loop.create_task(consume_promotion_messages(loop, num_tasks))
         loop.run_forever()
     finally:
         MongoDb.disconnect()

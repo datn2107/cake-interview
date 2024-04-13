@@ -66,10 +66,10 @@ async def process_message(message: AbstractIncomingMessage):
                 await message.nack()
 
 
-async def consume_promotion_messages(loop):
+async def consume_promotion_messages(loop, num_tasks=1):
     async with await connect_robust(os.getenv("MQ_URL"), loop=loop) as connection:
         channel = await connection.channel()
-        await channel.set_qos(prefetch_count=1)
+        await channel.set_qos(prefetch_count=num_tasks)
 
         queue = await channel.declare_queue(
             os.getenv("MQ_PROMOTION_ROUTING_KEY"), durable=True, auto_delete=False

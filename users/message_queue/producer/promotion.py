@@ -10,6 +10,7 @@ async def push_promotion_message(payload: dict, routing_key: str) -> None:
         channel = await connection.channel()
 
         logger.info(f"Publishing message: {payload}")
+        await channel.declare_queue(routing_key, durable=True)
         await channel.default_exchange.publish(
             Message(body=str(payload).encode(), delivery_mode=DeliveryMode.PERSISTENT),
             routing_key=routing_key,
